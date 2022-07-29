@@ -7,7 +7,6 @@ import sys
 sys.path.insert(0, "../")
 
 PATH = os.getcwd()
-PATH = '/'.join(PATH.split('/')[:-1])
 
 def get_annotator_labels(infolder):
     c10h_df = pd.read_csv(infolder)
@@ -98,11 +97,11 @@ def drop_and_distribute(c10h_labels, max_annotations=5):
     c10h_annotator_mask = _get_annotator_mask(c10h_labels)
     x_drop, y_drop = _get_random_drop_per_row_min_annotators(c10h_annotator_mask, max_annotations)
     c10h_labels, c10h_annotator_mask = _get_sample_labels(x_drop, y_drop, c10h_labels, c10h_annotator_mask)
-    print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {n} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
+    print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {max_annotations} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
 
     x_drop, y_drop = _get_random_drop_per_row(c10h_annotator_mask)
     c10h_labels, c10h_annotator_mask = _get_sample_labels(x_drop, y_drop, c10h_labels, c10h_annotator_mask)
-    print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {n} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
+    print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {max_annotations} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
 
     # drop all empty annotators
     drop_axis = c10h_labels.copy()
@@ -127,18 +126,16 @@ def get_and_save_consensus_labels(c10h_labels, c10h_true_labels, consensus_outfo
     consensus_df.to_csv(consensus_outfolder, index=False)
     return consensus_df
 
-def get_ground_truth_data_matched(model_infolder, annotator_infolder):
+def get_ground_truth_data_matched(model_infolder, c10h_labels_folder, c10h_true_labels_folder, pred_probs):
     # read numpy files from model_train_pred
-    images = np.load(f"{infolder}/images.npy", allow_pickle=True)
+    images = np.load(f"{model_infolder}/images.npy", allow_pickle=True)
     idxs = [int(image.split('/')[-1][-8:-4]) for image in images]
     
     # set all cifar10h annotator data to the correct indexing
-    c10h_labels = np.load(f"{annotator_infolder}/c10h_labels.npy")
-    c10h_true_labels = np.load(f"{annotator_infolder}/c10h_true_labels.npy")
+    c10h_labels = np.load(c10h_labels_folder)
+    c10h_true_labels = np.load(c10h_true_labels_folder)
 
     c10h_labels = c10h_labels[idxs]
     c10h_true_labels = c10h_true_labels[idxs]
-
-    pred_probs = np.load(f"processed_data/{model}/pred_probs.npy")
     
     return c10h_labels, c10h_true_labels, pred_probs

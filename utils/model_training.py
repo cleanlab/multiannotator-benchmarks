@@ -8,17 +8,17 @@ import pickle
 import datetime
 from pathlib import Path
 import cleanlab
-from cross_validation_autogluon import cross_val_predict_autogluon_image_dataset
+from .cross_validation_autogluon import cross_val_predict_autogluon_image_dataset
 
 
-def train_models(models, data_filepath, model_results_folder):    
-    # set xvalidation parameters and shareable model train params
-    num_cv_folds = 5
-    verbose = 1
-    epochs = 1 #100
-    holdout_frac = 0.2
-    time_limit = 60 #21600
-    random_state = 123
+def train_models(models, data_filepath, model_results_folder, num_cv_folds=5, verbose=1, epochs=1, holdout_frac=0.2, time_limit=60, random_state=123, **kwargs):    
+#     # set xvalidation parameters and shareable model train params
+#     num_cv_folds = kwargs['num_cv_folds'] if 'num_cv_folds' in kwargs.keys() else 5
+#     verbose = kwargs['verbose'] if 'verbose' in kwargs.keys() else 1
+#     epochs = kwargs['epochs'] if 'epochs' in kwargs.keys() else 1 #100
+#     holdout_frac = kwargs['holdout_frac'] if 'holdout_frac' in kwargs.keys() else 0.2
+#     time_limit = kwargs['time_limit'] if 'time_limit' in kwargs.keys() else 60 #21600
+#     random_state = kwargs['random_state'] if 'random_state' in kwargs.keys() else 123
     
     # load data
     df = pd.read_csv(data_filepath)
@@ -55,7 +55,7 @@ def _load_pickle(pickle_file_name, verbose=1):
     return out
 
 
-def sum_xval_folds(models, model_results_folder):
+def sum_xval_folds(models, model_results_folder, num_cv_folds=5, verbose=1, **kwargs):
     # get original label name to idx mapping
     label_name_to_idx_map = {'airplane': 0,
                          'automobile': 1,
@@ -85,11 +85,12 @@ def sum_xval_folds(models, model_results_folder):
             )
 
             # NOTE: the "test_" prefix in the pickle name correspond to the "test" split during cross-validation.
-            pred_probs_split = load_pickle(get_pickle_file_name("test_pred_probs"), verbose=verbose)
-            labels_split = load_pickle(get_pickle_file_name("test_labels"), verbose=verbose)
-            images_split = load_pickle(get_pickle_file_name("test_image_files"), verbose=verbose)
-            indices_split = load_pickle(get_pickle_file_name("test_indices"), verbose=verbose)
-
+            pred_probs_split = _load_pickle(get_pickle_file_name("test_pred_probs"), verbose=verbose)
+            labels_split = _load_pickle(get_pickle_file_name("test_labels"), verbose=verbose)
+            images_split = _load_pickle(get_pickle_file_name("test_image_files"), verbose=verbose)
+            indices_split = _load_pickle(get_pickle_file_name("test_indices"), verbose=verbose)
+            print(indices_split)
+            
             # append to list so we can combine data from all the splits
             pred_probs.append(pred_probs_split)
             labels.append(labels_split)
@@ -97,7 +98,7 @@ def sum_xval_folds(models, model_results_folder):
 
         # convert list to array
         pred_probs = np.vstack(pred_probs)
-        labels = np.hstack(labels) # remember that this is the noisy labels (s)
+        labels = np.hstack(labels) # remember that this is the consensus labels (s)
         images = np.hstack(images)
 
         # get the original label from file path (aka "true labels" y)
@@ -114,23 +115,4 @@ def sum_xval_folds(models, model_results_folder):
         np.save(numpy_out_folder + "images", images)
         np.save(numpy_out_folder + "true_labels", true_labels)
 
-        # check the accuracy
-        acc_labels = (pred_probs.argmax(axis=1) == labels).mean() # noisy labels (s)
-        acc_true_labels = (pred_probs.argmax(axis=1) == true_labels).mean() # true labels (y)    
-        acc_noisy_vs_true_labels = (labels == true_labels).mean()
-
-        print(f"Model: {model}")
-        print(f"  Accuracy (argmax pred vs labels): {acc_labels}")
-        print(f"  Accuracy (argmax pred vs true labels) : {acc_true_labels}")
-        print(f"  Accuracy (labels vs true labels)       : {acc_noisy_vs_true_labels}")
-
-        results = {
-            "model": model,
-            "Accuracy (argmax pred vs noisy labels)": acc_labels,
-            "Accuracy (argmax pred vs true labels)": acc_true_labels,
-            "Accuracy (noisy vs true labels)": acc_noisy_vs_true_labels
-        }
-
-        results_list.append(results)
-        
-        return pred_probs, labels , true_labels, images, results_list
+        return pred_probs, labels , true_labels, images
