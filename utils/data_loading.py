@@ -1,4 +1,4 @@
-from cleanlab.multiannotator import get_consensus_label
+from cleanlab.multiannotator import get_majority_vote_label
 import numpy as np
 import pandas as pd
 import os
@@ -87,6 +87,64 @@ def _get_random_drop_per_row_min_annotators(c10h_annotator_mask, max_annotations
     y_drop = [xy_idx[1] for xy_idx in xy]
     return x_drop, y_drop
 
+def _get_worst_annotators(c10h_annotator_mask, annotator_idxs, max_annotations = 5):
+    annotations_per_example = np.zeros(c10h_annotator_mask.shape[0])
+    annotations_per_annotator = np.zeros(c10h_annotator_mask.shape[1]) # dictionary of distinct examples
+    selected_annotators = set()
+    
+    annotator_mask = np.zeros_like(c10h_annotator_mask)    
+    # set similarity is and operation between two columns
+     # keep global set of all annotations and and with specific annotator column
+    
+    # add first x annotators
+    num_initial_annotators = 25
+    for idx in annotator_idxs[:num_initial_annotators]:
+        x = np.where(c10h_annotator_mask[:,idx] == 1)[0]
+        annotations_per_example[x] += 1
+        annotations_per_annotator[idx] = len(x)
+        selected_annotators.add(idx)
+        annotator_mask[x, idx] = 1
+    
+    # only add other annotators if they share overlap with first x
+    for idx in annotator_idxs[num_initial_annotators:]:
+        if annotations_per_example.min() > 0:
+            print('all examples have at least 1 annotator')
+            break # test every single ex has at least 1 annotator
+        
+        x = np.where(c10h_annotator_mask[:,idx] == 1)[0] # annotator annotations
+        
+        # only add annotator if they overlap with current annotations
+        if annotations_per_example[x].sum() > len(x):
+            annotations_per_example[x] += 1
+            annotations_per_annotator[idx] = len(x)
+            selected_annotators.add(idx)
+            annotator_mask[x, idx] = 1
+
+    # sort annotators based on how much overlap they have with other annotators (sum(#annotations) is a good metric)
+    # compute average number of annotations per example and don't propose examples
+    # propose annotator and chose examples to drop (annotator has the most overlap left)
+    
+    for ex in range(annotator_mask.shape[0]):
+        if annotations_per_example[ex] < 3: # ignore dropping when there are very little annotations
+            continue
+
+        annotators = np.where(annotator_mask[ex] == 1)[0] # annotators for example
+        drop_y = np.random.choice(annotators, len(annotators)-1, replace=False)
+
+        for y in drop_y:
+            if np.random.uniform() > 0.2:
+                x = np.where(annotator_mask[:,y] == 1)[0]  # annotations for annotator y for all examples
+                x = np.setdiff1d(x,np.array([ex])) # annotations for annotator y for all examples minus curent example
+                if annotations_per_example[x].max() > 2: # number of total annotations by our annotator
+                    annotator_mask[ex][y] = 0
+                    annotations_per_annotator[y] -= 1
+                    annotations_per_example[ex] -= 1
+
+    x_drop, y_drop = np.where(annotator_mask == 0)
+    
+    print('num_worst_annotators_selected', len(selected_annotators))
+    return x_drop, y_drop
+
 def _get_annotator_mask(c10h_labels):
     mask = c10h_labels.copy()
     mask[~np.isnan(mask)] = 1
@@ -95,7 +153,11 @@ def _get_annotator_mask(c10h_labels):
 
 def drop_and_distribute(c10h_labels, max_annotations=5):
     c10h_annotator_mask = _get_annotator_mask(c10h_labels)
+    # TODO: FINISH THIS ONE! (annotator_idxs)
     x_drop, y_drop = _get_random_drop_per_row_min_annotators(c10h_annotator_mask, max_annotations)
+    # annotator_accuracy_df = plt_annotator_accuracy(c10h_labels_error_mask, c10h_annotator_mask).sort_values(by='score')
+# annotator_idxs = annotator_accuracy_df.index.values.tolist()
+#     x_drop, y_drop = _get_worst_annotators(c10h_annotator_mask, annotator_idxs, max_annotations = 5)
     c10h_labels, c10h_annotator_mask = _get_sample_labels(x_drop, y_drop, c10h_labels, c10h_annotator_mask)
     print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {max_annotations} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
 
@@ -107,6 +169,24 @@ def drop_and_distribute(c10h_labels, max_annotations=5):
     drop_axis = c10h_labels.copy()
     c10h_labels = c10h_labels[:, ~np.isnan(drop_axis).all(axis=0)]
     return c10h_labels
+
+def get_and_save_improved_consensus_label(label_quality_multiannotator, c10h_true_labels, consensus_outfolder):
+    classes = {0:"airplane", 
+       1:"automobile", 
+       2:"bird", 
+       3:"cat", 
+       4:"deer",
+       5:"dog", 
+       6:"frog", 
+       7:"horse", 
+       8:"ship", 
+       9:"truck"}
+    consensus_labels = label_quality_multiannotator["consensus_label"].tolist()
+    image_locs = [PATH + '/data/cifar10/test/' + classes[c10h_true_labels[i]] + 
+                   '/test_batch_index_' + str(i).zfill(4) +'.png' for i in range(len(c10h_true_labels))]
+    consensus_df = pd.DataFrame(zip(image_locs, consensus_labels), columns=['image', 'label'])
+    consensus_df.to_csv(consensus_outfolder, index=False)
+    return consensus_df
 
 def get_and_save_consensus_labels(c10h_labels, c10h_true_labels, consensus_outfolder, pred_probs=None):
     classes = {0:"airplane", 
@@ -121,7 +201,7 @@ def get_and_save_consensus_labels(c10h_labels, c10h_true_labels, consensus_outfo
            9:"truck"}
     image_locs = [PATH + '/data/cifar10/test/' + classes[c10h_true_labels[i]] + 
                    '/test_batch_index_' + str(i).zfill(4) +'.png' for i in range(len(c10h_true_labels))]
-    consensus_labels = get_consensus_label(pd.DataFrame(c10h_labels), pred_probs=pred_probs)
+    consensus_labels = get_majority_vote_label(pd.DataFrame(c10h_labels), pred_probs=pred_probs)
     consensus_df = pd.DataFrame(zip(image_locs, consensus_labels), columns=['image', 'label'])
     consensus_df.to_csv(consensus_outfolder, index=False)
     return consensus_df
