@@ -85,7 +85,7 @@ train_args = {
 }
 
 
-# In[ ]:
+# In[5]:
 
 
 # Loop through and retrain model on better pred-probs
@@ -120,7 +120,7 @@ for i in range(NUM_MODEL_RETRAINS):
 
 # ## Compute accuracy of model based on Accuracy (labels vs true labels) by itter after folder
 
-# In[ ]:
+# In[6]:
 
 
 acc_noisy_vs_true_labels = (consensus_labels['label'].values == c10h_true_labels).mean()
