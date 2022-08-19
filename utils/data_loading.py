@@ -151,13 +151,27 @@ def _get_annotator_mask(c10h_labels):
     mask[np.isnan(mask)] = 0
     return mask
 
-def drop_and_distribute(c10h_labels, max_annotations=5):
+def _get_correct_annotations_mask(c10h_labels, c10h_true_labels):
+    tile_true_labels = np.repeat(c10h_true_labels[:,np.newaxis], c10h_labels.shape[1], axis=1)
+    c10h_labels_error_mask = (c10h_labels == tile_true_labels) + 0.
+    c10h_annotator_mask =  _get_annotator_mask(c10h_labels)
+    c10h_labels_error_mask = np.logical_and(np.logical_not(c10h_labels_error_mask),c10h_annotator_mask).astype(bool)
+    return c10h_labels_error_mask
+
+# Get accuracy of individual annotators on the points they labeled
+def get_annotator_accuracy(labels_error_mask, annotator_mask):
+    annotator_accuracy = labels_error_mask.sum(axis=0) / annotator_mask.sum(axis=0)
+    df_describe = pd.DataFrame(annotator_accuracy, columns=['score'])
+    return df_describe
+
+def drop_and_distribute(c10h_labels, c10h_true_labels, max_annotations=5):
     c10h_annotator_mask = _get_annotator_mask(c10h_labels)
-    # TODO: FINISH THIS ONE! (annotator_idxs)
-    x_drop, y_drop = _get_random_drop_per_row_min_annotators(c10h_annotator_mask, max_annotations)
-    # annotator_accuracy_df = plt_annotator_accuracy(c10h_labels_error_mask, c10h_annotator_mask).sort_values(by='score')
-# annotator_idxs = annotator_accuracy_df.index.values.tolist()
-#     x_drop, y_drop = _get_worst_annotators(c10h_annotator_mask, annotator_idxs, max_annotations = 5)
+    c10h_labels_error_mask = _get_correct_annotations_mask(c10h_labels, c10h_true_labels)
+
+#     x_drop, y_drop = _get_random_drop_per_row_min_annotators(c10h_annotator_mask, max_annotations)
+    annotator_accuracy_df = get_annotator_accuracy(c10h_labels_error_mask, c10h_annotator_mask).sort_values(by='score')
+    annotator_idxs = annotator_accuracy_df.index.values.tolist()
+    x_drop, y_drop = _get_worst_annotators(c10h_annotator_mask, annotator_idxs, max_annotations = 5)
     c10h_labels, c10h_annotator_mask = _get_sample_labels(x_drop, y_drop, c10h_labels, c10h_annotator_mask)
     print(f'Make sure {c10h_annotator_mask.sum(axis=1).max()} <= {max_annotations} and { c10h_annotator_mask.sum(axis=1).min()} > 0: ')
 
