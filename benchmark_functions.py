@@ -93,6 +93,7 @@ def benchmark_results(
 
         # compute scores
         label_quality_scores = label_quality_multiannotator["quality_of_consensus"]
+        ranked_quality = label_quality_multiannotator["ranked_quality"]
 
         consensus_labels = label_quality_multiannotator["consensus_label"]
         consensus_labels_accuracy, results_df = get_consensus_label_accuracy(
@@ -108,20 +109,20 @@ def benchmark_results(
 
         # compute precision-recall curve using label quality scores
         precision, recall, thresholds = precision_recall_curve(
-            label_errors_target, -label_quality_scores
+            label_errors_target, -ranked_quality
         )
 
         # compute au-roc curve using label quality scores
-        fpr, tpr, thresholds = roc_curve(label_errors_target, -label_quality_scores)
+        fpr, tpr, thresholds = roc_curve(label_errors_target, -ranked_quality)
 
         # compute accuracy of detecting label errors
-        auroc = roc_auc_score(label_errors_target, -label_quality_scores)
+        auroc = roc_auc_score(label_errors_target, -ranked_quality)
         auprc = auc(recall, precision)
 
         lift_at_k_dict = {}
         for k in [10, 50, 100, 300, 500, 1000]:
             lift_at_k_dict[f"lift_at_{k}"] = lift_at_k(
-                label_errors_target, -label_quality_scores, k=k
+                label_errors_target, -ranked_quality, k=k
             )
 
         if add_model == True:
