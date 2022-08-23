@@ -28,7 +28,7 @@ To measure the three goals stated above, we used the following metrics:
 
 2. To evaluate **how well the consensus quality scores estimate the quality of the consensus labels**, we measure the AUROC and AUPRC of whether or not the consensus label is accurate with respect to the ground truth label
 
-3. To evaluate **how well the annotator quality scores estimate the quality of each annotator**, we meausre the spearman correlation of the annotator quality score and the accuracy of each annotator's labels with respect to the ground truth label
+3. To evaluate **how well the annotator quality scores estimate the quality of each annotator**, we measure the spearman correlation of the annotator quality score and the accuracy of each annotator's labels with respect to the ground truth label
 
 
 

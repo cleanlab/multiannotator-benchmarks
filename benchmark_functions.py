@@ -59,7 +59,13 @@ def get_spearman_correlation(x, y):
 
 
 def benchmark_results(
-    c10h_labels, c10h_true_labels, pred_probs, methods, model_name, dataset_name
+    c10h_labels,
+    c10h_true_labels,
+    pred_probs,
+    methods,
+    model_name,
+    dataset_name,
+    add_model=False,
 ):
     plt.rcParams["figure.figsize"] = fig_size_big
     results_list = []
@@ -118,6 +124,10 @@ def benchmark_results(
                 label_errors_target, -label_quality_scores, k=k
             )
 
+        if add_model == True:
+            consensus_method += "_with_model"
+            quality_method += "_with_model"
+
         # save results
         results = {
             "dataset": dataset_name,
@@ -137,7 +147,7 @@ def benchmark_results(
 
         # plot prc
         plt.subplot(1, 2, 1)
-        plt.plot(recall, precision, label=f"{consensus_method}-{quality_method}")
+        plt.plot(recall, precision, label=f"{quality_method}")
         plt.xlabel("Recall", fontsize=14)
         plt.ylabel("Precision", fontsize=14)
         plt.title(
@@ -149,7 +159,7 @@ def benchmark_results(
 
         # plot roc
         plt.subplot(1, 2, 2)
-        plt.plot(fpr, tpr, label=f"{consensus_method}-{quality_method}")
+        plt.plot(fpr, tpr, label=f"{quality_method}")
         plt.xlabel("False Positive Rate", fontsize=14)
         plt.ylabel("True Positive Rate", fontsize=14)
         plt.title(
