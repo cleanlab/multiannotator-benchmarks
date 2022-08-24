@@ -19,9 +19,6 @@ from scipy import stats
 # cleanlab imports
 from cleanlab.multiannotator import get_label_quality_multiannotator
 
-# local imports
-from utils.eval_metrics import lift_at_k
-
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -56,6 +53,15 @@ def get_spearman_correlation(x, y):
         y = np.nan_to_num(y)
 
     return stats.spearmanr(x, y)
+
+
+def lift_at_k(y_true, y_score, k=100):
+    """Compute Lift at K evaluation metric"""
+    sort_indices = np.argsort(y_score)
+    # compute lift for the top k values
+    lift_at_k = y_true[sort_indices][-k:].mean() / y_true.mean()
+
+    return lift_at_k
 
 
 def benchmark_results(

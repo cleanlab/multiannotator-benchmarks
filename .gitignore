@@ -3,6 +3,7 @@
 .vscode/
 
 .ipynb_checkpoints/
-__pycache__/git
+__pycache__/
 
+*.tar.gz
 benchmark_data/
