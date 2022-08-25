@@ -48,3 +48,9 @@ Here is a brief description of all the methods we used in this benchmark.
 | `dawid_skene_with_model` | Adding the model predictions as an additional annotator, then running the Dawid-Skene algorithm above |
 | `glad` | Uses probabilistic approaches to infer the label, the expertise of each annotator and the difficulty of each example, [link to paper](https://proceedings.neurips.cc/paper/2009/file/f899139df5e1059396431415e770c6dd-Paper.pdf) for more information |
 | `glad_with_model` |  Adding the model predictions as an additional annotator, then running the GLAD algorithm above |
+
+
+## To generate test data for your own experiments from scratch run the notebooks in the following order
+1. preprocess_data.ipynb - preprocesses cifar10h dataset
+2. create_labels_df.ipynb - generates correct absolute label paths for images in preprocessed data
+3. xval_model_train[...].ipynb - trains a model and generates test data
