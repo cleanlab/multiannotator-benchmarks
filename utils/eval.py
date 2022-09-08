@@ -16,16 +16,23 @@ def get_labels_error_mask(c10h_labels, c10h_true_labels):
     return c10h_labels_error_mask.astype(bool)
 
 # Get accuracy of individual annotators on the points they labeled
-def plt_annotator_accuracy(labels_error_mask, annotator_mask, plot=True):
+def plt_annotator_accuracy(labels_error_mask, annotator_mask, plot=True, fig_title="fig.pdf"):
     annotator_accuracy = labels_error_mask.sum(axis=0) / annotator_mask.sum(axis=0)
     if plot:
-        plt.boxplot(annotator_accuracy, )
+        acc = pd.DataFrame(annotator_accuracy, columns=[''])
+        bplot = acc.boxplot(figsize=(7,7), grid=False, fontsize=15)
+        bplot.set_ylabel('Annotator Accuracy', fontsize=15)
+        bplot.get_figure().gca().set_title("")
+        bplot.get_figure().gca().set_xlabel("")
+        plt.suptitle('')
+        plt.savefig(fig_title, format="pdf")
         plt.show()
+
     df_describe = pd.DataFrame(annotator_accuracy, columns=['score'])
     return df_describe
 
 # Plots the distribution of annotator agreement for correct/incorrect labels
-def plt_labels_multiannotator(multiannotator_labels, consensus_labels, true_labels, plot=True):
+def plt_labels_multiannotator(multiannotator_labels, consensus_labels, true_labels, plot=True, fig_title="fig"):
     consensus_labels_tile = np.repeat(consensus_labels[:,np.newaxis], multiannotator_labels.shape[1], axis=1)
     num_annotators_per_ex = np.count_nonzero(~np.isnan(multiannotator_labels), axis=1)
     
@@ -34,11 +41,18 @@ def plt_labels_multiannotator(multiannotator_labels, consensus_labels, true_labe
     
     bin_consensus = (true_labels == consensus_labels) + 0
     consensus_accuracy = pd.DataFrame(zip(annotator_agreement,bin_consensus), columns=['annotator agreement','binary consensus'])
+    consensus_accuracy['binary consensus'] = consensus_accuracy.apply(lambda row: "Correct" if row['binary consensus']==1 else "Wrong", axis=1)
+    
     if plot:
-        bplot = consensus_accuracy.boxplot(by=['binary consensus'], figsize=(7,7))
-        bplot.set_ylabel('Number of annotations for example')
-        bplot.set_xlabel('Consensus label accuracy')
+        bplot = consensus_accuracy.boxplot(by=['binary consensus'], figsize=(7,7), grid=False, fontsize=15)
+        bplot.set_ylabel('Number of annotations for example', fontsize=15)
+        bplot.set_xlabel('Consensus label accuracy', fontsize=15)
+        bplot.get_figure().gca().set_title("")
+        plt.suptitle('')
+        plt.savefig(fig_title, format="pdf")
         plt.show()
+    
+    consensus_accuracy = pd.DataFrame(zip(annotator_agreement,bin_consensus), columns=['annotator agreement','binary consensus'])
     consensus_accuracy = consensus_accuracy.groupby('binary consensus')[['annotator agreement']].sum().reset_index()
 
     return consensus_accuracy
