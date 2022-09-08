@@ -41,13 +41,13 @@ def plt_labels_multiannotator(multiannotator_labels, consensus_labels, true_labe
     
     bin_consensus = (true_labels == consensus_labels) + 0
     consensus_accuracy = pd.DataFrame(zip(annotator_agreement,bin_consensus), columns=['annotator agreement','binary consensus'])
-    consensus_accuracy['binary consensus'] = consensus_accuracy.apply(lambda row: "Correct" if row['binary consensus']==1 else "Wrong", axis=1)
+    consensus_accuracy['binary consensus'] = consensus_accuracy.apply(lambda row: "Correct label" if row['binary consensus']==1 else "Wrong label", axis=1)
     
     if plot:
         bplot = consensus_accuracy.boxplot(by=['binary consensus'], figsize=(7,7), grid=False, fontsize=15)
         bplot.set_ylabel('Number of annotations for example', fontsize=15)
-        bplot.set_xlabel('Consensus label accuracy', fontsize=15)
         bplot.get_figure().gca().set_title("")
+        bplot.get_figure().gca().set_xlabel("")
         plt.suptitle('')
         plt.savefig(fig_title, format="pdf")
         plt.show()
