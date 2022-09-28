@@ -21,7 +21,7 @@ pip install -r requirements.txt
 To reproduce the benchmarks using the results from the already trained models, run the following notebooks:
 
 1. [benchmark.ipynb](2_benchmark.ipynb) - runs the benchmarks and saves results to csv
-2. benchmark_results_[...] - visualize benchmark results in plots
+2. benchmark_results_[...].ipynb - visualize benchmark results in plots
 
 ## Generate Test Data and Train Model
 
