@@ -1,0 +1,9 @@
+# Python dependencies for development
+coverage != 6.3, != 6.3.*
+pre-commit
+pytest
+pytest-cov
+scipy
+torch
+torchvision
+requests

@@ -1,0 +1,166 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - "**"
+
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Pandoc
+        run: sudo apt-get install pandoc
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Upgrade pip
+        run: python3 -m pip install --upgrade pip
+
+      - name: Get pip cache dir
+        id: pip-cache
+        run: echo "::set-output name=dir::$(pip cache dir)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install cleanlab
+        run: pip install -e .
+
+      - name: Install dependencies
+        run: python3 -m pip install -r docs/requirements.txt
+
+      - name: Install katex
+        run: npm install -g katex
+
+      - name: Find and replace "%pip install cleanlab" with master branch in .ipynb files
+        if: ${{ github.ref_type == 'branch' }}
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "%pip install cleanlab  ${{ '#' }} for colab"
+          replace: "%pip install git+https://github.com/${{ github.repository }}.git@${{ github.sha }}"
+          include: "docs/source**.ipynb"
+
+      - name: Find and replace "%pip install cleanlab" with release tag in .ipynb files
+        if: ${{ github.ref_type == 'tag' }}
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "%pip install cleanlab  ${{ '#' }} for colab"
+          replace: "%pip install cleanlab==${{ github.ref_name }}"
+          include: "docs/source**.ipynb"
+
+      - name: Add and Commit changes to .ipynb files
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add -A && git commit -m "Change cleanlab ver in .ipynb files"
+
+      - name: Change tag to the latest commit
+        if: ${{ github.ref_type == 'tag' }}
+        run: |
+          git tag -f $GITHUB_REF_NAME
+
+      - name: Run Sphinx with sphinx-multiversion wrapper - branch trigger
+        if: ${{ github.ref_type == 'branch' }}
+        run: sphinx-multiversion docs/source cleanlab-docs -D smv_branch_whitelist=${{ github.ref_name }} -D smv_tag_whitelist=None
+
+      - name: Run Sphinx with sphinx-multiversion wrapper - tag trigger
+        if: ${{ github.ref_type == 'tag' }}
+        run: sphinx-multiversion docs/source cleanlab-docs -D smv_branch_whitelist=None -D smv_tag_whitelist=${{ github.ref_name }}
+
+      - name: Get latest stable release
+        id: stable_release
+        continue-on-error: true
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: cleanlab
+          excludes: prerelease, draft
+
+      - name: Create latest_release.txt file
+        if: ${{ steps.stable_release.outcome == 'success' }}
+        run: echo ${{ steps.stable_release.outputs.release }} > cleanlab-docs/latest_release.txt
+
+      - name: Find and replace "placeholder_version_number" in verisioning.js
+        if: ${{ steps.stable_release.outcome == 'success' }}
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "placeholder_version_number"
+          replace: ${{ steps.stable_release.outputs.release }}
+          include: "docs/source/_templates/versioning.js"
+
+      - name: Find and replace "placeholder_commit_hash" in verisioning.js
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "placeholder_commit_hash"
+          replace: ${{ github.sha }}
+          include: "docs/source/_templates/versioning.js"
+
+      - name: Copy versioning JS file to cleanlab-docs/
+        run: |
+          cp docs/source/_templates/versioning.js cleanlab-docs/versioning.js
+
+      - name: Find and replace "stable_url" in redirect-to-stable.html
+        if: ${{ github.ref_type == 'tag' && steps.stable_release.outcome == 'success' }}
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "stable_url"
+          replace: ${{ env.DOCS_SITE_URL }}stable/index.html
+          include: "docs/source/_templates/redirect-to-stable.html"
+
+      - name: Copy redirecting HTML file to cleanlab-docs/
+        if: ${{ github.ref_type == 'tag' }}
+        run: cp docs/source/_templates/redirect-to-stable.html cleanlab-docs/index.html
+
+      - name: Deploy
+        if: ${{ (github.ref == 'refs/heads/master') || (github.ref_type == 'tag') }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          external_repository: ${{ github.repository_owner }}/cleanlab-docs
+          publish_branch: master
+          publish_dir: cleanlab-docs
+          keep_files: true
+          exclude_assets: ""
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: docs-html
+          path: cleanlab-docs
+          retention-days: 1 # don't need this except in link checking step below
+
+  links:
+    needs: deploy
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: docs-html
+          path: cleanlab-docs
+      - uses: anishathalye/proof-html@v1
+        with:
+          directory: ./cleanlab-docs
+          external_only: true

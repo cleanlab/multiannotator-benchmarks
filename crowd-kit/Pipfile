@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+crowd-kit = {editable = true, path = "."}
+
+[dev-packages]
+mypy = "*"
+pytest = "*"
+twine = "*"
+flake8 = "*"
+build = "*"
+codecov = "*"
+notebook = "*"

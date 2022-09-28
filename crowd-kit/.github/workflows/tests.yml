@@ -1,0 +1,69 @@
+name: Tests
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Workaround for notebook in Pipfile on Python 3.7
+        run: |
+          fgrep -v notebook Pipfile > Pipfile.py37
+          mv -f Pipfile.py37 Pipfile
+        if: matrix.python-version == '3.7'
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pipenv
+          pipenv install --dev --system --skip-lock
+      - name: Install notebook on Python 3.7
+        run: pip install notebook
+        if: matrix.python-version == '3.7'
+      - name: Lint with Mypy
+        run: mypy crowdkit tests
+      - name: Lint with flake8
+        run: flake8
+      - name: Test with pytest
+        run: coverage run --source crowdkit -m pytest
+      - name: Codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: codecov
+        if: matrix.python-version == '3.8'
+      - name: Build wheel
+        run: python3 -m build --sdist --wheel .
+      - name: Run Jupyter
+        run: jupyter nbconvert --to html --TagRemovePreprocessor.remove_cell_tags pip --execute examples/*.ipynb
+      - name: Upload Jupyter
+        uses: actions/upload-artifact@v3
+        with:
+          name: crowd-kit-jupyter
+          path: examples/*.html
+      - name: Validate CITATION.cff
+        uses: citation-file-format/cffconvert-github-action@2.0.0
+        with:
+          args: "--validate"
+        if: matrix.python-version == '3.8'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: Set up YFM
+        run: |
+          npm install @doc-tools/docs --location=global
+          wget https://raw.githubusercontent.com/Toloka/docs/main/.yfm
+      - name: Install Stubmaker
+        run: pip install https://github.com/Toloka/stubmaker/archive/refs/heads/main.zip
+      - name: Generate markdowns
+        run: ./misc/make_markdowns.py --module-root crowdkit --src-root crowdkit --output-dir docs/reference --described-objects misc/described_objects_crowdkit.py
+      - name: Generate docs
+        run: yfm -c .yfm -i ./docs -o /tmp/crowd-kit-docs

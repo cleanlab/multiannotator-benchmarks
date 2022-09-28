@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 8 * * 6'
+jobs:
+  test:
+    name: "Test: Python ${{ matrix.python }} on ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+        python:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install development dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Install cleanlab
+        run: pip install -e .
+      - name: Test with coverage
+        run: pytest --verbose --cov=cleanlab/ --cov-config .coveragerc --cov-report=xml
+      - uses: codecov/codecov-action@v2
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+  nblint:
+    name: Lint Notebooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: nblint
+        run: ./.ci/nblint.py docs
