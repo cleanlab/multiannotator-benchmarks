@@ -8,3 +8,4 @@ __pycache__/
 *.tar.gz
 benchmark_data/
 benchmark_graphs/
+misc_files/
