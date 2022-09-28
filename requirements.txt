@@ -1,0 +1,7 @@
+autogluon
+ipython
+ipywidgets
+matplotlib
+scikit-learn
+scipy
+seaborn
