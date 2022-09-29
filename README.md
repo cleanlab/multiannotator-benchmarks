@@ -16,6 +16,11 @@ pip install ./crowd-kit
 pip install -r requirements.txt
 ```
 
+Note that the `cleanlab/` and `crowd-kit/` folders contain forks of the [cleanlab](https://github.com/cleanlab/cleanlab) and [crowd-kit](https://github.com/Toloka/crowd-kit) libraries respectively. These forks differ from the main libraries by these aspects:
+
+- The `cleanlab` fork contains various multiannotator algorithms used in the benchmark (to obtain consensus labels and compute consensus and annotator quality scores) that are not present in the main library
+- The `crowd-kit` fork preserves some values in the logarithmic space for ranking purposes to prevent arithmetic underflow issues 
+
 ## Run Benchmarks
 
 To reproduce the benchmarks using the results from the already trained models, run the following notebooks:
