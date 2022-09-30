@@ -2,7 +2,7 @@
 
 Code to reproduce results from the paper:
 
-[Utilizing supervised models to infer consensus labels and their quality from data with multiple annotators](https://cleanlab.github.io/multiannotator-benchmarks/paper.pdf)
+**[Utilizing supervised models to infer consensus labels and their quality from data with multiple annotators](https://cleanlab.github.io/multiannotator-benchmarks/paper.pdf)**
 
 This repository benchmarks algorithms that estimate:
 1. A consensus label for each example that aggregates the individual annotations.
