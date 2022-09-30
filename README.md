@@ -9,6 +9,10 @@ This repository benchmarks algorithms that estimate:
 2. A confidence score for the correctness of each consensus label.
 3. A rating for each annotator which estimates the overall correctness of their labels.
 
+This repository is only for intended for scientific purposes. 
+To apply the CROWDLAB algorithm to your own data, you should instead use [the implementation](https://docs.cleanlab.ai/stable/tutorials/multiannotator.html) from the official [cleanlab](https://github.com/cleanlab/cleanlab) library.
+
+
 ## Install Dependencies
 
 To run the model training and benchmark, you need to install the following dependencies:
