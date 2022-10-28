@@ -2,7 +2,8 @@
 
 Code to reproduce results from the paper:
 
-**[Utilizing supervised models to infer consensus labels and their quality from data with multiple annotators](https://arxiv.org/abs/2210.06812)**
+**[Utilizing supervised models to infer consensus labels and their quality from data with multiple annotators](https://arxiv.org/abs/2210.06812)**  
+*NeurIPS 2022 Human in the Loop Learning Workshop*
 
 This repository benchmarks algorithms that estimate:
 1. A consensus label for each example that aggregates the individual annotations.
