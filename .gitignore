@@ -6,6 +6,7 @@
 __pycache__/
 
 *.tar.gz
+data/
 benchmark_data/
 benchmark_graphs/
 misc_files/
