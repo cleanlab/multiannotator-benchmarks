@@ -27,3 +27,8 @@ The datasets used in the benchmark are downloaded from:
 
 - [CIFAR-10H](https://github.com/jcpeterson/cifar-10h)
 - [Wall-Following Robot Navigation Data (Wall Robot)](https://www.openml.org/search?type=data&sort=runs&status=any&qualities.NumberOfClasses=gte_2&qualities.NumberOfInstances=between_1000_10000&id=1526)
+
+
+## Results
+
+The `results/` folder for each dataset contains `.npy` files that are the saved results (model accuracy and consensus label accuracy) from each run of the benchmark. These files are used to vizualize the results in the `plot_results.ipynb` notebooks.
