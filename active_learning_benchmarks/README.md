@@ -29,6 +29,16 @@ The datasets used in the benchmark are downloaded from:
 - [Wall-Following Robot Navigation Data (Wall Robot)](https://www.openml.org/search?type=data&sort=runs&status=any&qualities.NumberOfClasses=gte_2&qualities.NumberOfInstances=between_1000_10000&id=1526)
 
 
+### Additional Benchmarks
+
+Two supplementary benchmarks were conducted on the Wall Robot dataset:
+
+|   | Benchmark | Description | 
+| - | --------- | ----------- |
+| 1 | [Single Annotator vs Multiannotator](extra-benchmarks/single-vs-multiannotator) | Compare labeling new data vs relabeling existing datapoints. |
+| 2 | [Methods for Single Label](extra-benchmarks/single-annotator) | Benchmark the performance of various method in the scenario where each examples only has one label. |
+
+
 ## Results
 
 The `results/` folder for each dataset contains `.npy` files that are the saved results (model accuracy and consensus label accuracy) from each run of the benchmark. These files are used to vizualize the results in the `plot_results.ipynb` notebooks.

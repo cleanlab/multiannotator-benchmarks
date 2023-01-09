@@ -10,3 +10,6 @@ data/
 benchmark_data/
 benchmark_graphs/
 misc_files/
+
+active_learning_benchmarks/extra-benchmarks/single-annotator/results/
+active_learning_benchmarks/extra-benchmarks/single-vs-multiannotator/results/
