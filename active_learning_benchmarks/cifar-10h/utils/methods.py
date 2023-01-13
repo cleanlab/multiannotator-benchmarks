@@ -26,7 +26,7 @@ from cleanlab.internal.label_quality_utils import get_normalized_entropy
 num_rounds = 5
 num_iter = 13
 model_type = "resnet18"
-model_type1, model_type2, model_type3 = "resnet18", "resnest101e", "seresnet152d"
+model_type1, model_type2, model_type3 = "resnet18", "resnet34", "resnet50"
 train_args = {  # parameters to control model training
     "num_cv_folds": 5,  # decrease this value if you want code to run faster
     "epochs": 100,  # decrease this value if you want code to run faster
