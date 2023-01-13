@@ -5,7 +5,7 @@ import pandas as pd
 import time
 
 from utils.model_training import train_cross_val_model, sum_xval_folds
-from utils.active_learning_utils import (
+from utils.active_learning import (
     setup_next_iter_data,
     setup_next_iter_data_ensemble,
     get_empirical_dist_entropy,
