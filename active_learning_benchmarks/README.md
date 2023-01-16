@@ -2,7 +2,8 @@
 
 This repository benchmarks algorithms to compute an active learning score that quantifies how valuable it is to collect additional labels for specific examples in a classification dataset. We consider settings with multiple data annotators such that each example can be labeled more than once, if needed to ensure high-quality consensus labels. 
 
-This repository is only for intended for scientific purposes. To apply the CROWDLAB active learning algorithm to your own active learning loops with multiannotator data, you should instead use the implementation from the official [cleanlab](https://github.com/cleanlab/cleanlab) library.
+This repository is only for intended for scientific purposes. To apply the ActiveLab algorithm to your own active learning loops with multiannotator data, you should instead use the implementation from the official [cleanlab](https://github.com/cleanlab/cleanlab) library.
+
 
 ## Install Dependencies
 
