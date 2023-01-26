@@ -1,0 +1,7 @@
+cleanlab
+autogluon==0.5.2
+ipython==8.5.0
+ipywidgets==8.0.2
+matplotlib==3.6.0
+scikit-learn==1.0.2
+scipy==1.7.3
