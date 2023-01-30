@@ -2,7 +2,7 @@
 
 Code to reproduce results from the paper:
 
-**[Utilizing supervised models to infer consensus labels and their quality from data with multiple annotators](https://arxiv.org/abs/2210.06812)**  
+**[CROWDLAB: Supervised learning to infer consensus labels and quality scores for data with multiple annotators](https://arxiv.org/abs/2210.06812)**  
 *NeurIPS 2022 Human in the Loop Learning Workshop*
 
 This repository benchmarks algorithms that estimate:
