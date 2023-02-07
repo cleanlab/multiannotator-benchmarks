@@ -13,6 +13,7 @@ This repository benchmarks algorithms that estimate:
 This repository is only for intended for scientific purposes. 
 To apply the CROWDLAB algorithm to your own multi-annotator data, you should instead use [the implementation](https://docs.cleanlab.ai/stable/tutorials/multiannotator.html) from the official [cleanlab](https://github.com/cleanlab/cleanlab) library.
 
+Code to benchmark methods for active learning with multiple data annotators can be found in the [active_learning_benchmarks](active_learning_benchmarks) folder.
 
 ## Install Dependencies
 
